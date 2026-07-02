@@ -1,29 +1,21 @@
-import { TRequest, TResponse, TResponseData } from "../../utilities/type";
+import { TRequest, TResponse } from "../../utilities/type";
 
 import HttpStatus from "http-status";
 
 import { userService } from "./user.service";
 import { NextFunction } from "express";
 import { catchAsync } from "../../utilities/catchAsync";
+import { sendResponse } from "../../utilities/sendResponse";
 
 
-const sendResponse=<T>(res:TResponse,data:TResponseData<T>)=>{
-  res.status(data.successStatus).json({
-    success:data.success,
-    successStatus:data.successStatus,
-    message:data.message,
-    data:data.data,
-    meta:data.meta
-  })
-
-}
 
 
+//                 use catchAsync function  to try catch block 
 const createUser = catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=>{
   const payload = req.body;
   const user = await userService.createUserIntoDb(payload);
 
-
+// use reuseable function to send response 
  sendResponse(res,{
   success:true,
   successStatus:HttpStatus.CREATED,
