@@ -1,33 +1,40 @@
-import { TRequest, TResponse } from "../../utilities/type";
-import { prisma } from "../../lib/prisma";
+import { TRequest, TResponse, TResponseData } from "../../utilities/type";
+
 import HttpStatus from "http-status";
 
 import { userService } from "./user.service";
+import { NextFunction } from "express";
+import { catchAsync } from "../../utilities/catchAsync";
 
-const createUser = async (req: TRequest, res: TResponse) => {
- try {
-     const payload = req.body;
-     const user = await userService.createUserIntoDb(payload);
-     res.status(HttpStatus.CREATED).json({
-       success: true,
-       successStatus: HttpStatus.CREATED,
-       message: "profile created successfully",
-       data: {
-         user,
-       },
-     });
-    
- } catch (error) {
-    console.log(error);
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        success:false,
-        statusCode:HttpStatus.INTERNAL_SERVER_ERROR,
-        message:"Failed to user register",
-        error:(error as Error).message
-    })
-    
- }
-};
+
+const sendResponse=<T>(res:TResponse,data:TResponseData<T>)=>{
+  res.status(data.successStatus).json({
+    success:data.success,
+    successStatus:data.successStatus,
+    message:data.message,
+    data:data.data,
+    meta:data.meta
+  })
+
+}
+
+
+const createUser = catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=>{
+  const payload = req.body;
+  const user = await userService.createUserIntoDb(payload);
+
+
+ sendResponse(res,{
+  success:true,
+  successStatus:HttpStatus.CREATED,
+  message:"User created",
+  data:{user}
+
+ })
+})
+
+
+
 
 export const userController={
     createUser,

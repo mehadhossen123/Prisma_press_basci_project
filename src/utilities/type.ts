@@ -10,3 +10,20 @@ export interface UserPayLoadInterface {
   password: string;
   profilePhoto?: string;
 }
+
+
+
+
+ 
+  export type TMeta = {
+  page: number;
+  limit: number;
+  total: number;
+};
+  export type TResponseData<T> = {
+  success: boolean;
+  successStatus: number;
+  message: string;
+  data: T;
+  meta?: TMeta;
+};
