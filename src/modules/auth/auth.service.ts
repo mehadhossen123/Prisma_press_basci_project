@@ -19,6 +19,7 @@ const userLogin =async(payload:any)=>{
     id:user.id,
     name:user.name,
     email:user.email,
+    role:user.role
 
  }
  const accessToken=tokenUtils.makeToken(accessPayload,config.jWt_access_secret,config.jWt_access_expires_in)

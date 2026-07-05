@@ -3,6 +3,7 @@ import config from "../../config";
 import bcrypt from "bcrypt";
 import { UserPayLoadInterface } from "../../utilities/type";
 
+
 const createUserIntoDb = async (payload: UserPayLoadInterface) => {
   const { name, email, password, profilePhoto } = payload;
   //   user exist in the database ?
@@ -49,6 +50,19 @@ const createUserIntoDb = async (payload: UserPayLoadInterface) => {
   return user;
 };
 
+
+// get my profile form database 
+const getMyProfile=async(id:any)=>{
+  const user=await prisma.user.findUniqueOrThrow({
+    where:{id:id},
+    omit:{password:true},
+    include:{profile:true}
+  })
+  return user;
+
+}
+
 export const userService = {
   createUserIntoDb,
+  getMyProfile,
 };

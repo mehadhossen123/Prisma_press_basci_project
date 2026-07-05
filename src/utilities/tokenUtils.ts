@@ -5,6 +5,20 @@ const makeToken=(payload:JwtPayload,secret:string,expires_in:any)=>{
     return token;
 }
 
+
+// verify token 
+const verifyToken=(token:any,secret:any)=>{
+   try {
+     const verifyToken = jwt.verify(token, secret);
+     return verifyToken;
+    
+   } catch (error:any) {
+    throw new Error (error.message)
+    
+   }
+}
+
 export const tokenUtils={
-    makeToken
+    makeToken,
+    verifyToken
 }
