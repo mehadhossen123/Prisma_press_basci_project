@@ -21,7 +21,7 @@ declare global {
   }
 }
 
-const profileAuth = () => {
+export const profileAuth = () => {
   return async (req: TRequest, res: TResponse, next: NextFunction) => {
     try {
       const { accessToken } = req.cookies;
