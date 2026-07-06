@@ -32,12 +32,12 @@ const createUser = catchAsync(async(req:TRequest,res:TResponse,next:NextFunction
 const getMyProfile=catchAsync(async(req:TRequest,res:TResponse)=>{
 console.log(req.user,"user request")
 
- const {accessToken}=req.cookies;
-const verifyToken=tokenUtils.verifyToken(accessToken,config.jWt_access_secret)
- if( typeof verifyToken=="string"){
-  throw new Error (verifyToken)
- }
-const profile=await userService.getMyProfile(verifyToken.id)
+//  const {accessToken}=req.cookies;
+// const verifyToken=tokenUtils.verifyToken(accessToken,config.jWt_access_secret)
+//  if( typeof verifyToken=="string"){
+//   throw new Error (verifyToken)
+//  }
+const profile=await userService.getMyProfile(req?.user?.id as string)
 sendResponse(res,{
   success:true,
   message:"get profile successfully",
@@ -48,10 +48,24 @@ sendResponse(res,{
 
 })
 
+const updateProfile=catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=>{
+  const payload=req.body;
+  const userId=req?.user?.id;
+  const user=await userService.updateProfile(userId as string ,payload );
+  sendResponse(res, {
+    success: true,
+    message: "get profile successfully",
+    successStatus: HttpStatus.CREATED,
+    data: {user },
+  });
+
+})
 
 
 
-export const userController={
-    createUser,
-    getMyProfile
-}
+export const userController = {
+  createUser,
+  getMyProfile,
+  updateProfile,
+ 
+};

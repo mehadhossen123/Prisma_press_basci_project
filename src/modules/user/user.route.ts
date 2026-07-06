@@ -21,41 +21,54 @@ declare global {
   }
 }
 
-router.use("/register", userController.createUser);
-router.use(
-  "/me",
-  (req: TRequest, res: TResponse, next: NextFunction) => {
-    const { accessToken } = req.cookies;
-    const verifyToken = tokenUtils.verifyToken(
-      accessToken,
-      config.jWt_access_secret,
-    );
-    if (typeof verifyToken == "string") {
-      throw new Error(verifyToken);
+const profileAuth = () => {
+  return async (req: TRequest, res: TResponse, next: NextFunction) => {
+    try {
+      const { accessToken } = req.cookies;
+
+    
+      if (!accessToken) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          success: false,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: "Access token is missing!",
+        });
+      }
+
+      const verifyToken = tokenUtils.verifyToken(
+        accessToken,
+        config.jWt_access_secret,
+      );
+
+      if (typeof verifyToken === "string") {
+        throw new Error(verifyToken);
+      }
+
+      const { name, email, role, id } = verifyToken;
+      const requiresRole = [Role?.admin, Role?.author, Role?.user];
+
+     
+      if (!requiresRole.includes(role)) {
+        return res.status(403).json({
+          success: false,
+          statusCode: HttpStatus.FORBIDDEN,
+          message: "You don't have permission to access",
+        });
+      }
+
+      req.user = { id, name, role, email };
+
+      
+      next();
+    } catch (error) {
+     
+      next(error);
     }
-    const { name, email, role, id } = verifyToken;
-   
+  };
+};
 
-    const requiresRole = [Role?.admin, Role?.author, Role?.user];
-    // check if the role is matched
-    if (!requiresRole.includes(role)) {
-      res.status(403).json({
-        success: false,
-        statusCode: HttpStatus.FORBIDDEN,
-        message: "You don't have any  permission to access",
-      });
-    }
-    req.user = {
-      id,
-      name,
-      role,
-      email,
-    };
-
-    next();
-  },
-
-  userController.getMyProfile,
-);
+router.post("/register", userController.createUser);
+router.get( "/me",profileAuth(),userController.getMyProfile);
+router.put("/my-profile",profileAuth(),userController.updateProfile)
 
 export const userRouter = router;

@@ -1,0 +1,5 @@
+// here is post schema model 
+model Post {
+    id String @id @default(uuid())
+    
+}
