@@ -8,12 +8,15 @@ import  HttpStatus  from "http-status";
 
 //  create post in database 
 const createPost=catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=>{
-    const result=await postService.createPostIntoDb();
+   const userId=req?.user?.id
+  const payload=req.body;
+ 
+    const result=await postService.createPostIntoDb(payload,userId as string);
 
 
      sendResponse(res, {
        success: true,
-       message: "get profile successfully",
+       message: "Created post successfully",
        successStatus: HttpStatus.CREATED,
        data: { result },
      });
@@ -29,9 +32,9 @@ const getAllPost=catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=
 
      sendResponse(res, {
        success: true,
-       message: "get profile successfully",
-       successStatus: HttpStatus.CREATED,
-       data: { result },
+       message: "Get all post successfully",
+       successStatus: HttpStatus.FOUND,
+       data: result
      });
 
 
@@ -55,16 +58,18 @@ const getPostStats = catchAsync(
 
 
 
-// get all post stats
+// get single  post by id 
 const getMyPost = catchAsync(
   async (req: TRequest, res: TResponse, next: NextFunction) => {
-    const result = await postService.getMyPostFromDb();
+    const id=req?.user?.id;
+ 
+    const result = await postService.getMyPostFromDb(id as string);
 
     sendResponse(res, {
       success: true,
-      message: "get profile successfully",
+      message: "get  post successfully",
       successStatus: HttpStatus.CREATED,
-      data: { result },
+      data: result ,
     });
   },
 );
@@ -72,16 +77,30 @@ const getMyPost = catchAsync(
 
 
 
-// get  post by id  stats
+// get  post by id  
 const getPostById = catchAsync(
   async (req: TRequest, res: TResponse, next: NextFunction) => {
-    const result = await postService.getPostByIdFromDb();
+    const postId = req?.params?.postId;
+  
+    if(!postId){
+      throw new Error("Post id required")
+    }
+    const result = await postService.getPostByIdFromDb(postId as string);
+    console.log(result)
+    if (!result) {
+      return sendResponse(res, {
+        success: false,
+        message: "Post not found",
+        successStatus: HttpStatus.NOT_FOUND, 
+        data: null,
+      });
+    }
 
     sendResponse(res, {
       success: true,
-      message: "get profile successfully",
-      successStatus: HttpStatus.CREATED,
-      data: { result },
+      message: "Get post  successfully",
+      successStatus: HttpStatus.OK,
+      data:  result ,
     });
   },
 );
@@ -91,11 +110,16 @@ const getPostById = catchAsync(
 // update  post by id  stats
 const updatePost = catchAsync(
   async (req: TRequest, res: TResponse, next: NextFunction) => {
-    const result = await postService.updatePostFromDb();
+
+    const postId=req?.params?.postId;
+    const authorId=req?.user?.id;
+     const payload=req.body;
+     const admin=req?.user?.role=="admin"
+    const result = await postService.updatePostFromDb(postId as string,payload,authorId as string,admin);
 
     sendResponse(res, {
       success: true,
-      message: "get profile successfully",
+      message: "post update successfully",
       successStatus: HttpStatus.CREATED,
       data: { result },
     });
@@ -108,13 +132,18 @@ const updatePost = catchAsync(
 // delete  post by id  stats
 const deletePost = catchAsync(
   async (req: TRequest, res: TResponse, next: NextFunction) => {
-    const result = await postService.deletePostFormDb();
+
+    const postId = req?.params?.postId;
+    const authorId = req?.user?.id;
+  
+    const admin = req?.user?.role == "admin";
+    const result = await postService.deletePostFormDb(postId as string ,authorId as string ,admin);
 
     sendResponse(res, {
       success: true,
-      message: "get profile successfully",
-      successStatus: HttpStatus.CREATED,
-      data: { result },
+      message: "post deleted successfully",
+      successStatus: HttpStatus.OK,
+      data: result ,
     });
   },
 );
