@@ -1,3 +1,4 @@
+import { commentStatus, postStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { DeletePostPayload, PostInterface } from "./post.interface";
 
@@ -30,35 +31,59 @@ const getAllPostFromDb = async () => {
 
 // get my  post by id
 const getPostByIdFromDb = async (postId: string) => {
-  const result = await prisma.post.findUnique({
-    where: { id: postId },
-  });
+  
+  const transaction = await prisma.$transaction(
 
-  if (!result) {
-    const error = new Error("Post not found");
-    (error as any).statusCode = 404;
-    throw error;
-  }
-
-  const updatePostView = await prisma.post.update({
-    where: { id: postId },
-    data: {
-      views: {
-        increment: 1,
-      },
-    },
-    include: {
-      author: {
-        omit: {
-          password: true,
+    async (tx) => {
+    await tx.post.update({
+      where: { id: postId },
+      data: {
+        views: {
+          increment: 1,
         },
       },
-      comments: true,
-    },
+     
+    });
+
+    
+
+    const post = await tx.post.findUniqueOrThrow({
+      where: { id: postId },
+      include: {
+        author: {
+          omit: {
+            password: true,
+          },
+        },
+        comments:{
+          where:{
+            status:commentStatus.APPROVED
+          },
+          orderBy:{
+            createdAt:"desc"
+          }
+        },
+        _count:{
+          select:{
+            comments:true
+          }
+        }
+       
+       
+      },
+    });
+    return post;
+    
   });
 
-  return updatePostView;
+  return transaction;
+
+
 };
+
+
+
+
 
 // get all post stats
 const getMyPostFromDb = async (authorId: string) => {
@@ -90,35 +115,29 @@ const getMyPostFromDb = async (authorId: string) => {
 
   return result;
 };
-// update  all post stats
+// delete  all post 
 const deletePostFormDb = async (
   postId: string,
 
   authorId: string,
   isAdmin: boolean,
 ) => {
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+  });
 
-   const post = await prisma.post.findUniqueOrThrow({
-     where: { id: postId }
-   });
+  if (!isAdmin && post.authorId !== authorId) {
+    throw new Error("You are not the owner of this post");
+  }
 
-   if (!isAdmin && post.authorId !== authorId) {
-     throw new Error("You are not the owner of this post");
-   }
+  const result = await prisma.post.delete({
+    where: { id: postId },
+  });
 
-   const result=await prisma.post.delete({
-    where:{id:postId}
-   })
-
-   return result;
-
-
-
-
+  return result;
 };
 
-
-// get all post stats
+// update single  post 
 const updatePostFromDb = async (
   postId: string,
   payload: DeletePostPayload,
@@ -149,9 +168,71 @@ const updatePostFromDb = async (
   return result;
 };
 
+const getAllPostStatsFromDb=async()=>{
+  const transactionResult=await prisma.$transaction(
+    async(tx)=>{
+      const totalPost=await tx.post.count();
+
+
+      const totalPublishPost=await tx.post.count({
+        where:{
+          status:postStatus.PUBLISHED
+        }
+      })
+
+
+      const totalDraftPost=await tx.post.count({
+        where:{
+          status:postStatus.DRAFT
+        }
+      })
+
+
+      const totalArchivePost=await tx.post.count({
+        where:{
+          status:postStatus.ARCHIVE
+        }
+      })
+
+      const totalComment=await tx.comment.count();
+      
+
+      const totalApprovedComment=await tx.comment.count({
+        where:{
+          status:commentStatus.APPROVED
+        }
+      })
+
+
+      const totalRejectComment=await tx.comment.count({
+        where:{
+          status:commentStatus.REJECTED
+        }
+      })
+
+      return {
+        totalPost,
+        totalPublishPost,
+        totalArchivePost,
+        totalDraftPost,
+        totalComment,
+        totalApprovedComment,
+        totalRejectComment
+      }
+    }
+  )
+   return transactionResult;
+}
+
+
+
+
+
+
 export const postService = {
   createPostIntoDb,
   getAllPostFromDb,
+  getAllPostStatsFromDb,
 
   getMyPostFromDb,
   getPostByIdFromDb,

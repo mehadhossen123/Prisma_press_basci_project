@@ -86,7 +86,7 @@ const getPostById = catchAsync(
       throw new Error("Post id required")
     }
     const result = await postService.getPostByIdFromDb(postId as string);
-    console.log(result)
+    
     if (!result) {
       return sendResponse(res, {
         success: false,
