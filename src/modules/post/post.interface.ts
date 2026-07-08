@@ -1,4 +1,6 @@
+
 import { postStatus } from "../../../generated/prisma/enums";
+import { PostWhereInput } from "../../../generated/prisma/models";
 
 export interface PostInterface {
   title: string;
@@ -19,3 +21,14 @@ export interface DeletePostPayload {
   status?: postStatus;
   tags?: string[];
 }
+
+export interface QueryPost extends PostWhereInput {
+ 
+  search?:string
+  limit?:string
+  page?:string
+  sortBy?:string
+  sortOrder?:string
+}
+
+

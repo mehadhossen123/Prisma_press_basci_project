@@ -27,7 +27,9 @@ const createPost=catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=
 
 // get all post 
 const getAllPost=catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=>{
-    const result=await postService.getAllPostFromDb();
+  const query=req.query;
+  
+    const result=await postService.getAllPostFromDb(query);
 
 
      sendResponse(res, {

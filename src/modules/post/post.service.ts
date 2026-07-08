@@ -1,6 +1,8 @@
+
 import { commentStatus, postStatus } from "../../../generated/prisma/enums";
+import { PostWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
-import { DeletePostPayload, PostInterface } from "./post.interface";
+import { DeletePostPayload, PostInterface, QueryPost } from "./post.interface";
 
 // create post in db
 const createPostIntoDb = async (payload: PostInterface, userId: string) => {
@@ -15,8 +17,161 @@ const createPostIntoDb = async (payload: PostInterface, userId: string) => {
 };
 
 // get all post form db api
-const getAllPostFromDb = async () => {
+const getAllPostFromDb = async (query: QueryPost) => {
+  const limit=query.limit?Number(query.limit):10
+  const page=query.page?Number(query.page):1
+
+ 
+
+  const skip=(page-1)*limit;
+   const andCondition: PostWhereInput[] = [];
+
+if(query.search){
+  andCondition.push({
+    OR: [
+      {
+        title: {
+          contains: query.search,
+          mode: "insensitive",
+        },
+      },
+      {
+        content: {
+          contains: query.search,
+        },
+      },
+    ]
+
+
+  });
+}
+
+
+if(query.title){
+  andCondition.push({
+    title:query.title
+  })
+}
+
+
+if(query.content){
+  andCondition.push({
+    title:query.content
+  })
+}
+
+
+
+
   const result = await prisma.post.findMany({
+    //   here implementation filtering
+
+    // where: {
+    //   title:"My second Post",
+    //   content:"mehad"
+    // },
+    // where:{
+    //   title:{
+    //     contains:"Ronaldo",
+    //     mode:"insensitive"    // search case insensitive
+    //   }
+    // },
+
+    // searching or approach
+    // where:{
+    //   OR:[
+    //     {
+    //       title:{
+    //         contains:"Ronaldo",
+    //         mode:"insensitive"
+    //       }
+    //     },
+    //     {
+    //       content:{
+    //         contains:"Ronaldo",
+    //         mode:"insensitive"
+    //       }
+    //     }
+    //   ]
+    // },
+
+    // search and filtering er combination
+    // where:{
+
+    //   AND:[
+    //     //  searching
+    //     {
+    //       OR:[
+    //         {
+    //       title:{
+    //         contains:"mama ronaldo",
+    //         mode:"insensitive"
+    //       }
+    //     },
+    //     {
+    //       content:{
+    //       contains:"ronaldo",
+    //        mode:"insensitive"
+    //        }
+    //      }
+
+    //       ]
+
+    //     },
+    //     // filtering
+    //     {
+    //       title:"Ronaldo"
+    //     },
+    //     {
+    //       content:"ronaldo"
+    //     }
+    //   ]
+    // },
+
+    //  this is the pagination part
+    // take:1,
+    // skip:1,
+
+    where: {
+      AND: [
+        // search
+        query.search
+          ? {
+              OR: [
+                {
+                  title: {
+                    contains: query.search,
+                    mode: "insensitive",
+                  }
+                },
+                {
+                  content: {
+                    contains: query.search,
+                  },
+                },
+              ],
+            }
+          : {},
+
+        // filtering with title
+        query.title ? { title: query.title } : {},
+        // content filtering
+        query.content ? { content: query.content } : {},
+      ],
+    },
+
+    // where:{
+
+    //   AND:andCondition
+    // },
+
+    
+
+
+
+    take:limit,
+     skip:skip,
+
     include: {
       comments: true,
       author: {
@@ -26,6 +181,7 @@ const getAllPostFromDb = async () => {
       },
     },
   });
+
   return result;
 };
 
@@ -115,6 +271,12 @@ const getMyPostFromDb = async (authorId: string) => {
 
   return result;
 };
+
+
+
+
+
+
 // delete  all post 
 const deletePostFormDb = async (
   postId: string,

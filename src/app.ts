@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, request, Request, response, Response } from "express";
 import cors from "cors";
 import config from "./config";
 import cookieParser from "cookie-parser";
@@ -33,5 +33,12 @@ app.use("/api/user",userRouter);
 app.use("/api/auth",authRouter)
 app.use("/api/post",postRouter)
 app.use("/api/comment",commentRouter)
+
+app.use((req:Request ,res:Response)=>{
+  res.status(404).json({
+    message:"Route not found ",
+    path:req.originalUrl,
+  })
+})
 
 export default app;
