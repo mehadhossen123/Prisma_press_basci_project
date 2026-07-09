@@ -10,7 +10,7 @@ model User {
   profile      Profile?
   comments     Comment[]
   posts        Post[]
-  user         Subscription?
+  subscription        Subscription?
 
   @@map("users")
 }

@@ -13,6 +13,7 @@ model Post {
   comments   Comment[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @default(now())
+  isPremium Boolean @default(false)
 
   @@index([authorId])
   @@map("posts")
