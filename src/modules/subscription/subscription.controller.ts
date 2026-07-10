@@ -18,6 +18,22 @@ const createSubscriptionCheckout=catchAsync(async(req:TRequest,res:TResponse,nex
 })
 
 
+const handleWebhook=catchAsync(async(req:TRequest,res:TResponse,next:NextFunction)=>{
+    const event=req.body as Buffer;
+    const signature=req?.headers["stripe-signature"]
+    const result=await subscriptionService.handleWebhookIntoDb(event ,signature as string)
+
+    sendResponse(res,{
+        success:true,
+        successStatus:HttpStatus.OK,
+        message:"Webhook triggered successfully",
+        data:null
+    })
+
+})
+
+
 export const subscriptionController={
     createSubscriptionCheckout,
+    handleWebhook
 }
