@@ -9,6 +9,7 @@ import { postRouter } from "./modules/post/post.router";
 import { commentRouter } from "./modules/comment/comment.router";
 import { subscriptionRouter } from "./modules/subscription/subscription.router";
 import { stripe } from "./lib/stripe";
+import { premiumRouter } from "./modules/premium/premium.route";
 
 
 
@@ -92,6 +93,7 @@ app.use("/api/user",userRouter);
 app.use("/api/auth",authRouter)
 app.use("/api/post",postRouter)
 app.use("/api/comment",commentRouter)
+app.use("/api/premium",premiumRouter)
 
 
 app.use((req:Request ,res:Response)=>{

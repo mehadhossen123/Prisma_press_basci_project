@@ -178,11 +178,33 @@ const handleSubscriptionUpdated=async(payload:Stripe.Subscription)=>{
 
 }
 
+// get subscription status 
+const getSubscriptionStatus=async(userId:string)=>{
+  const isSubscriptionExist=await prisma.subscription.findUnique({
+    where:{userId}
+  })
+
+  const isActive =
+    isSubscriptionExist?.status == "ACTIVE" &&
+    isSubscriptionExist.currentPeriodEnd &&
+    new Date(isSubscriptionExist.currentPeriodEnd) > new Date();
 
 
-
-
-export const subscriptionService={
-    createSubscriptionCheckout,
-    handleWebhookIntoDb
+    return{
+      status:isSubscriptionExist?.status,
+      subscribed:isActive,
+      currentPeriodEnd:isSubscriptionExist?.currentPeriodEnd
+    }
 }
+
+
+
+
+
+
+
+export const subscriptionService = {
+  createSubscriptionCheckout,
+  handleWebhookIntoDb,
+  getSubscriptionStatus,
+};
